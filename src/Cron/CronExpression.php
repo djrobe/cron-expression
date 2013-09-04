@@ -327,7 +327,7 @@ class CronExpression
      *
      * @return string
      */
-    public function toEnglish()
+    public function toEnglish($glue = '<br/>')
     {
 		$expr = $this->getExpression();
         
@@ -371,12 +371,12 @@ class CronExpression
         list($minute, $hour, $day, $month, $weekday, $year) = array_pad(explode(' ', $this->getExpression()), 6, null);
 
         return
-            'At minute  : ' . $this->parseEnglish($minute) . '<br>' .
-            'At hour    : ' . $this->parseEnglish($hour) . '<br>' .
-            'At day     : ' . $this->parseEnglish($day) . '<br>' .
-            'At month   : ' . $this->parseEnglish($month) . '<br>' .
-            'At weekday : ' . $this->parseEnglish($weekday) . '<br>' .
-            'At year    : ' . $this->parseEnglish($year ? $year : '*') . '<br>'
+            'At minute  : ' . $this->parseEnglish($minute) . $glue .
+            'At hour    : ' . $this->parseEnglish($hour) . $glue .
+            'At day     : ' . $this->parseEnglish($day) . $glue .
+            'At month   : ' . $this->parseEnglish($month) . $glue .
+            'At weekday : ' . $this->parseEnglish($weekday) . $glue .
+            'At year    : ' . $this->parseEnglish($year ? $year : '*') . $glue
             ;
     }
 
