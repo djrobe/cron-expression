@@ -321,4 +321,94 @@ class CronExpression
         throw new RuntimeException('Impossible CRON expression');
         // @codeCoverageIgnoreEnd
     }
+    
+    /**
+     * Output a cron in English text
+     *
+     * @return string
+     */
+    public function toEnglish()
+    {
+		$expr = $this->getExpression();
+        
+        if (!$expr) {
+            return '';
+        }
+		
+		if (strncmp($expr, '@', 1) === 0) {
+			switch ($expr) {
+				case '@yearly';
+				case '@annually':
+					$expr = '0 0 1 1 *';
+					break;
+				
+				case '@monthly':
+					$expr = '0 0 1 * *';
+					break;
+				
+				case '@weekly':
+					$expr = '0 0 * * 0';
+					break;
+				
+				case '@daily':
+					$expr = '0 0 * * *';
+					break;
+				
+				case '@hourly':
+					$expr = '0 * * * *';
+					break;
+				
+				case '@reboot':
+					return 'At startup';
+					break;
+				
+				default:
+					// unknown @ expression, leave as-is
+					return $expr;
+			}
+		}
+		
+        list($minute, $hour, $day, $month, $weekday, $year) = array_pad(explode(' ', $this->getExpression()), 6, null);
+
+        return
+            'At minute  : ' . $this->parseEnglish($minute) . '<br>' .
+            'At hour    : ' . $this->parseEnglish($hour) . '<br>' .
+            'At day     : ' . $this->parseEnglish($day) . '<br>' .
+            'At month   : ' . $this->parseEnglish($month) . '<br>' .
+            'At weekday : ' . $this->parseEnglish($weekday) . '<br>' .
+            'At year    : ' . $this->parseEnglish($year ? $year : '*') . '<br>'
+            ;
+    }
+
+    private function parseEnglish($part)
+    {
+        if ($part == '*') {
+            return 'any';
+        }
+
+        if (substr($part, 0, 2) == '*/') {
+            return 'every ' . $this->parseEnglish(substr($part, 2)); /* XXX: recursion */
+        }
+
+        preg_match("/\D/is", $part, $list, PREG_OFFSET_CAPTURE);
+        if (isset($list[0][1])) {
+	        $index = $list[0][1];
+            $return = substr($part, 0, $index);
+
+            $nextPart = substr($part, $index);
+            switch ($nextPart[0]) {
+                case '-':
+                    $return .= ' until ';
+                    break;
+                case ',':
+                    $return .= ' and ';
+                    break;
+            }
+            $return .= $this->parseEnglish(substr($nextPart, 1)); /* XXX: recursion */
+        } else {
+            $return = $part;
+        }
+
+        return $return;
+    }
 }
